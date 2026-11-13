@@ -11,3 +11,6 @@ node_modules/
 
 # Built deployment package (build/package.sh)
 *-hostinger.zip
+
+# Per-site deployment files (contain secrets)
+deploy-*/
