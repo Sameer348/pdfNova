@@ -1,0 +1,32 @@
+{
+    "name": "pdfnova/website",
+    "description": "PDFNova — PDF tools website for Apache/PHP shared hosting",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.1",
+        "ext-fileinfo": "*",
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "ext-pdo": "*",
+        "ext-zip": "*",
+        "setasign/fpdi": "^2.6",
+        "tecnickcom/tcpdf": "^6.7"
+    },
+    "autoload": {
+        "psr-4": {
+            "PDFNova\\Pdf\\": "public_html/services/pdf/",
+            "PDFNova\\Converters\\": "public_html/services/converters/",
+            "PDFNova\\Ocr\\": "public_html/services/ocr/",
+            "PDFNova\\Payment\\": "public_html/services/payment/"
+        }
+    },
+    "config": {
+        "vendor-dir": "public_html/vendor",
+        "optimize-autoloader": true,
+        "sort-packages": true,
+        "platform": {
+            "php": "8.1.0"
+        }
+    }
+}

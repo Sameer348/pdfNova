@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "pdfnova-php",
+      "runtimeExecutable": "/opt/homebrew/bin/php",
+      "runtimeArgs": ["-S", "localhost:8080", "-t", "public_html", "build/dev-router.php"],
+      "port": 8080
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+public_html/includes/config.php
+public_html/vendor/*
+!public_html/vendor/.htaccess
+public_html/storage/uploads/*
+public_html/storage/processed/*
+public_html/storage/temp/*
+public_html/storage/logs/*
+!public_html/storage/**/.gitkeep
+.DS_Store
+node_modules/
+
+# Built deployment package (build/package.sh)
+*-hostinger.zip

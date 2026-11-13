@@ -1,0 +1,111 @@
+# =============================================================================
+# PDFNova — Apache / LiteSpeed configuration (Hostinger shared hosting)
+# Hostinger runs LiteSpeed, which reads .htaccess with Apache-compatible syntax.
+# =============================================================================
+
+# No directory listings, no content negotiation surprises
+Options -Indexes -MultiViews
+DirectoryIndex index.php
+ServerSignature Off
+
+# Default charset for text responses
+AddDefaultCharset UTF-8
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # --- Force HTTPS (skipped on localhost for development) -------------------
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+    RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+    # --- Remove "www." (optional — uncomment to enforce the bare domain) -----
+    # RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+    # RewriteRule ^ https://%1%{REQUEST_URI} [R=301,L]
+
+    # --- Block private application folders over HTTP -------------------------
+    # (each folder also contains its own "deny all" .htaccess as a second layer)
+    RewriteRule ^(includes|pages|templates|services|database|cron|vendor|storage)(/|$) - [F,L]
+
+    # --- Block dotfiles (except .well-known for SSL validation) --------------
+    RewriteRule (^|/)\.(?!well-known/) - [F,L]
+
+    # --- Block sensitive file types anywhere ---------------------------------
+    RewriteRule \.(sql|md|log|ini|lock|dist|bak|sh|env|example\.php)$ - [F,L,NC]
+    RewriteRule (^|/)composer\.(json|lock)$ - [F,L,NC]
+
+    # --- Internal API helpers (files starting with "_") ----------------------
+    RewriteRule ^api/_ - [F,L]
+
+    # --- Never allow direct access to index.php/… path tricks ----------------
+    RewriteRule ^index\.php/ - [F,L]
+
+    # --- Admin area: its own front controller; templates never served -------
+    RewriteRule ^admin/(pages|partials)(/|$) - [F,L]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^admin(/.*)?$ admin/index.php [L,QSA]
+
+    # --- Front controller: everything that is not a real file → index.php ----
+    # (real files = assets, api/*.php, admin/*.php, robots.txt, sitemap.xml)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_URI} !^/admin(/|$)
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# --- Security headers (CSP is sent by PHP; see includes/security.php) -------
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+    Header always unset X-Powered-By
+    Header unset X-Powered-By
+    <FilesMatch "\.(js|mjs)$">
+        Header set Cache-Control "no-cache"
+    </FilesMatch>
+</IfModule>
+
+# --- Compression -------------------------------------------------------------
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml application/javascript application/json application/xml image/svg+xml
+</IfModule>
+
+# --- Caching: assets are cache-busted with ?v=<mtime>, so cache for a year --
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresDefault "access plus 0 seconds"
+    ExpiresByType text/css               "access plus 1 year"
+    # JS modules are not versioned (see module_url() in functions.php):
+    # browsers revalidate them on each visit (304 when unchanged).
+    ExpiresByType application/javascript "access plus 0 seconds"
+    ExpiresByType text/javascript        "access plus 0 seconds"
+    ExpiresByType image/svg+xml          "access plus 1 year"
+    ExpiresByType image/png              "access plus 1 year"
+    ExpiresByType image/jpeg             "access plus 1 year"
+    ExpiresByType image/webp             "access plus 1 year"
+    ExpiresByType font/woff2             "access plus 1 year"
+    ExpiresByType application/xml        "access plus 1 day"
+    ExpiresByType text/plain             "access plus 1 day"
+</IfModule>
+
+# --- MIME types for modern assets --------------------------------------------
+<IfModule mod_mime.c>
+    AddType application/javascript .js .mjs
+    AddType font/woff2 .woff2
+    AddType image/svg+xml .svg
+</IfModule>
+
+# --- Upload size (only if your host honours php_value in .htaccess) ---------
+# Prefer hPanel → Advanced → PHP Configuration. Values must be >= your plan limits.
+# <IfModule lsapi_module>
+#     php_value upload_max_filesize 200M
+#     php_value post_max_size 210M
+#     php_value max_execution_time 120
+#     php_value memory_limit 512M
+# </IfModule>
+
+# --- Custom error pages handled by the front controller ---------------------
+ErrorDocument 403 /index.php
+ErrorDocument 404 /index.php

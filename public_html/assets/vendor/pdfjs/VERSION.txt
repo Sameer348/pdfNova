@@ -1,0 +1,2 @@
+pdf.js 4.10.38 (pdfjs-dist, Apache-2.0) — https://github.com/mozilla/pdf.js
+Files: build/pdf.min.mjs, build/pdf.worker.min.mjs. Loaded only on pages that show page thumbnails.
